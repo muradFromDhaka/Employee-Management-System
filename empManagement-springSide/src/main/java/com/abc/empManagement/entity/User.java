@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Set;
 
@@ -69,7 +70,6 @@ public class User {
         this.accountNonExpired = true;
         this.accountNonLocked = true;
     }
-
     public User() {
         // Initialize in default constructor
         this.enabled = true;

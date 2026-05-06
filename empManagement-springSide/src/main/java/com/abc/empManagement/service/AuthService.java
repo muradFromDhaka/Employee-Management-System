@@ -9,6 +9,7 @@ import com.abc.empManagement.entity.User;
 import com.abc.empManagement.repository.RoleRepository;
 import com.abc.empManagement.repository.UserRepository;
 import com.abc.empManagement.security.JwtUtil;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -61,6 +62,7 @@ public class AuthService {
         userRepository.save(user);
         return "User registered successfully";
     }
+
 
     public String initializeRoles() {
         String[] defaultRoles = {"USER", "ADMIN", "MODERATOR","VENDOR"};

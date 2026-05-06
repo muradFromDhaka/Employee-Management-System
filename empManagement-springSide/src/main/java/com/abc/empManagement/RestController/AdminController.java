@@ -7,6 +7,8 @@ import com.abc.empManagement.entity.Role;
 import com.abc.empManagement.entity.User;
 import com.abc.empManagement.repository.RoleRepository;
 import com.abc.empManagement.repository.UserRepository;
+import com.abc.empManagement.service.RoleService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,14 +24,15 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/admin")
 @CrossOrigin(origins = "*", maxAge = 3600)
 //@PreAuthorize("hasRole('ADMIN')")  // Fixed: changed USER to ADMIN
-@PreAuthorize("hasAuthority('ROLE_ADMIN')")  // Use hasAuthority with full name
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+@RequiredArgsConstructor// Use hasAuthority with full name
 public class AdminController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
+
+    private final RoleRepository roleRepository;
+    private final RoleService roleService;
 
     // GET ALL ROLES
     @GetMapping("/roles")
@@ -94,6 +97,16 @@ public class AdminController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(users);
+    }
+
+    @DeleteMapping("/roles/{roleName}")
+    public ResponseEntity<Void> deleteRole(@PathVariable String roleName){
+       try {
+           roleService.delete(roleName);
+       }catch (Exception e){
+           System.out.print("exception:=================" + e);
+       }
+         return ResponseEntity.notFound().build();
     }
 
     // SYSTEM STATISTICS - Only super admin can access
