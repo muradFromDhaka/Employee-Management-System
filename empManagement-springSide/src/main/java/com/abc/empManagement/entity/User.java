@@ -1,6 +1,7 @@
 package com.abc.empManagement.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,6 +28,7 @@ public class User {
     private String userLastName;
 
     @Column
+    @JsonIgnore
     private String password;
     @Column(nullable = false, unique = true)
     private String email;
@@ -51,6 +53,8 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_name")
     )
     private Set<Role> roles;
+
+
 
 //    @CreatedDate
     @Column(nullable = false, updatable = false)

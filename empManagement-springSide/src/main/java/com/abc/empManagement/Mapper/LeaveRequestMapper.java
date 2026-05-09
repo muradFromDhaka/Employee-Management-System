@@ -17,7 +17,6 @@ public class LeaveRequestMapper {
         entity.setReason(dto.getReason());
         entity.setStartDate(dto.getStartDate());
         entity.setEndDate(dto.getEndDate());
-        entity.setStatus(LeaveStatus.PENDING);
         entity.setEmployee(emp);
         return entity;
     }

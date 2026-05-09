@@ -1,4 +1,3 @@
-
 // pages/registration_page.dart
 import 'package:emp_management_flutterside/models/auth/RegisterRequest.dart';
 import 'package:emp_management_flutterside/services/auth_service.dart';
@@ -113,7 +112,8 @@ class _RegistrationPageState extends State<RegistrationPage>
       print("email = ${request.email}");
 
       if (!mounted) return;
-
+      print("mount ------------------------------ $mounted");
+       print("Registration:----------------------------- $success");
       if (success) {
         // Show success dialog
         _showSuccessDialog();

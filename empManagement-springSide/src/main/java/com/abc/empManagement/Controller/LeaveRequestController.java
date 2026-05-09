@@ -3,10 +3,12 @@ package com.abc.empManagement.Controller;
 import com.abc.empManagement.DTOs.ProjectDtos.LeaveRequestDTO;
 import com.abc.empManagement.DTOs.ProjectDtos.LeaveResponseDTO;
 import com.abc.empManagement.enums.LeaveStatus;
+import com.abc.empManagement.security.CustomUserDetailsService;
 import com.abc.empManagement.service.LeaveRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -14,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/leaves")
+@RequestMapping("/api/leaves")
 public class LeaveRequestController {
 
     private final LeaveRequestService leaveRequestService;
@@ -25,9 +27,15 @@ public class LeaveRequestController {
     @PreAuthorize("hasRole('EMPLOYEE')")
     @PostMapping
     public ResponseEntity<LeaveResponseDTO> applyLeave(
-            @RequestBody LeaveRequestDTO dto
+            @RequestBody LeaveRequestDTO dto,
+            Authentication auth
     ) {
-        return ResponseEntity.ok(leaveRequestService.applyLeave(dto));
+
+        String username = auth.getName();
+        System.out.println("JWT USERNAME:--------------------- " + username);
+        return ResponseEntity.ok(
+                leaveRequestService.applyLeave(dto, username)
+        );
     }
 
     // =========================
@@ -35,7 +43,7 @@ public class LeaveRequestController {
     // =========================
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<LeaveResponseDTO>> getAll() {
+    public ResponseEntity<List<LeaveResponseDTO>> getAllLeaver() {
         return ResponseEntity.ok(leaveRequestService.getAll());
     }
 
@@ -51,12 +59,21 @@ public class LeaveRequestController {
     // =========================
     // EMPLOYEE OWN LEAVES
     // =========================
-    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/employee/{employeeId}")
     public ResponseEntity<List<LeaveResponseDTO>> getByEmployee(
             @PathVariable Long employeeId
     ) {
         return ResponseEntity.ok(leaveRequestService.getByEmployee(employeeId));
+    }
+
+    @GetMapping("/my-leaves")
+    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('ADMIN')")
+    public ResponseEntity<List<LeaveResponseDTO>> myLeaves(Authentication auth) {
+        String username = auth.getName();
+        return ResponseEntity.ok(
+                leaveRequestService.getByUsername(username)
+        );
     }
 
     // =========================

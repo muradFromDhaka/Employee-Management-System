@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:emp_management_flutterside/models/auth/RegisterRequest.dart';
+import 'package:emp_management_flutterside/models/auth/role.dart';
+import 'package:emp_management_flutterside/models/auth/user.dart';
 import 'package:emp_management_flutterside/services/api-config.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,7 +19,7 @@ class AuthService {
         body: jsonEncode({"username": username, "password": password}),
       );
 
-      print("Authentication:-----------$res");
+      print("Login successful");
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -46,10 +48,10 @@ class AuthService {
         headers: await headers(),
         body: jsonEncode(request),
       );
-
+      print("Registration Response:--------------------------- ${res.body}");
       return res.statusCode == 200 || res.statusCode == 201;
     } catch (e) {
-      print("REGISTER ERROR: $e");
+      print("REGISTER ERROR:------------------------------- $e");
       return false;
     }
   }
@@ -64,7 +66,6 @@ class AuthService {
     } else if (response.statusCode == 404) {
       throw Exception("Role not found");
     } else {
-      print("Failed to delete role:============================ ${response.body}");
       throw Exception("Failed to delete role: ${response.body}");
     }
   }
@@ -99,7 +100,8 @@ class AuthService {
 
     return {
       "Content-Type": "application/json",
-      if (auth) "Authorization": "Bearer $token",
+      if (auth && token != null && token.isNotEmpty)
+        "Authorization": "Bearer $token",
     };
   }
 
@@ -154,6 +156,35 @@ class AuthService {
     }
   }
 
+  Future<User?> getCurrentUser2() async {
+    final token = await getToken();
+    if (token == null) return null;
+
+    try {
+      final jwt = _parseJwt(token);
+
+      if (_isTokenExpired(jwt)) {
+        await logout();
+        return null;
+      }
+
+      return User(
+        userName: jwt['sub'] ?? '',
+        userFirstName: jwt['userFirstName'],
+        userLastName: jwt['userLastName'],
+        email: jwt['email'],
+        enabled: null,
+        roles: (jwt['roles'] as List<dynamic>?)
+            ?.map((e) => Role(roleName: e.toString()))
+            .toList(),
+      );
+    } catch (e) {
+      print("TOKEN PARSE ERROR: $e");
+      await logout();
+      return null;
+    }
+  }
+
   // ================= ROLE CHECK =================
 
   Future<bool> hasRole(String roleName) async {
@@ -161,8 +192,7 @@ class AuthService {
     if (user == null) return false;
 
     final rolesDynamic = user['roles'] ?? [];
-
-    final roles = rolesDynamic.map<String>((r) => r.toString()).toList();
+    final roles = List<String>.from(user['roles'] ?? []);
 
     return roles.contains(roleName);
   }

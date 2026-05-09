@@ -52,15 +52,14 @@ class _RoleManagementPageState extends State<RoleManagementPage> {
       await AuthService().deleteRole(roleName);
 
       setState(() {
-        setState(() {
-          _roles.removeWhere((role) => role.roleName == roleName);
-        });
+        _roles.removeWhere((role) => role['roleName'] == roleName);
       });
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Role deleted")));
     } catch (e) {
+      print("Error deleting role:==================================== $e");
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error: $e")));

@@ -38,5 +38,9 @@ public class Employee {
     @OneToMany(mappedBy = "employee")
     private List<LeaveRequest> leaveRequests;
 
+    @OneToOne
+    @JoinColumn(name = "user_name")
+    private User user;
 
+    
 }

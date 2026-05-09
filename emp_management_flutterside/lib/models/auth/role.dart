@@ -3,9 +3,9 @@ class Role {
 
   Role({required this.roleName});
 
-  factory Role.fromJson(Map<String, dynamic> json) {
+  factory Role.fromJson(Map<String, dynamic> toJson) {
     return Role(
-      roleName: json['roleName'],
+      roleName: toJson['roleName'] ?? '',
     );
   }
 }

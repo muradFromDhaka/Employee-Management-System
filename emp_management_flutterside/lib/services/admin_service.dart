@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'package:emp_management_flutterside/models/auth/role.dart';
+import 'package:emp_management_flutterside/models/auth/user.dart';
 import 'package:emp_management_flutterside/services/api-config.dart';
 import 'package:emp_management_flutterside/services/auth_service.dart';
+import 'package:emp_management_flutterside/services/responseHandle.dart';
 import 'package:http/http.dart' as http;
 
 class AdminService {
@@ -10,9 +13,24 @@ class AdminService {
 
   /* ================= GET ALL ROLES ================= */
 
-  Future<List<dynamic>> getAllRoles() async {
+  Future<List<Role>> getAllRoles() async {
     final res = await http.get(
       Uri.parse("$_baseUrl/roles"),
+      headers: await _authService.headers(auth: true),
+    );
+
+    if (res.statusCode == 200) {
+      return (jsonDecode(res.body) as List)
+          .map((e) => Role.fromJson(e))
+          .toList();
+    }
+
+    throw Exception("Failed to load roles");
+  }
+
+  Future<List<dynamic>> getAllUsers() async {
+    final res = await http.get(
+      Uri.parse("${ApiConfig.baseURL}/users"),
       headers: await _authService.headers(auth: true),
     );
 
@@ -20,19 +38,19 @@ class AdminService {
       return jsonDecode(res.body);
     }
 
-    throw Exception("Failed to load roles");
+    throw Exception("Failed to load users");
   }
 
   /* ================= CREATE ROLE ================= */
 
-  Future<Map<String, dynamic>> createRole(String roleName, String description) async {
+  Future<Map<String, dynamic>> createRole(
+    String roleName,
+    String description,
+  ) async {
     final res = await http.post(
       Uri.parse("$_baseUrl/roles"),
       headers: await _authService.headers(auth: true),
-      body: jsonEncode({
-        "roleName": roleName,
-        "description": description,
-      }),
+      body: jsonEncode({"roleName": roleName, "description": description}),
     );
 
     if (res.statusCode == 200 || res.statusCode == 201) {
@@ -51,9 +69,7 @@ class AdminService {
     final res = await http.put(
       Uri.parse("$_baseUrl/users/$username/roles"),
       headers: await _authService.headers(auth: true),
-      body: jsonEncode({
-        "roles": roles,
-      }),
+      body: jsonEncode({"roles": roles}),
     );
 
     if (res.statusCode == 200) {
@@ -76,5 +92,16 @@ class AdminService {
     }
 
     throw Exception("Failed to load users by role");
+  }
+
+  Future<User> getUserByUsername(String username) async {
+    final response = await http.get(
+      Uri.parse("${ApiConfig.baseURL}/users/$username"),
+      headers: await _authService.headers(auth: true),
+    );
+
+    final data = handleResponse(response);
+
+    return User.fromJson(data as Map<String, dynamic>);
   }
 }

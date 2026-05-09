@@ -12,7 +12,7 @@ import java.time.YearMonth;
 import java.util.List;
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/attendances")
+@RequestMapping("/api/attendances")
 public class AttendanceController {
 
     private final AttendanceService attendanceService;

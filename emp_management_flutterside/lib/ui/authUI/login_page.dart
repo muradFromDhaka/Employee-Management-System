@@ -2,6 +2,7 @@
 import 'package:emp_management_flutterside/services/auth_service.dart';
 import 'package:emp_management_flutterside/ui/adminUI/admin_dashboard.dart';
 import 'package:emp_management_flutterside/ui/authUI/register_page.dart';
+import 'package:emp_management_flutterside/ui/employeeUI/employee_dashboard_page.dart';
 import 'package:emp_management_flutterside/ui/managerUI/manager_dashboard.dart';
 import 'package:emp_management_flutterside/ui/publicUI/publicPage.dart';
 import 'package:flutter/material.dart';
@@ -97,7 +98,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       );
 
       if (!mounted) return;
-
       if (success) {
         // Save credentials if remember me is checked
         if (_rememberMe) {
@@ -107,7 +107,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         final isAdmin = await _authService.hasRole('ROLE_ADMIN');
         final isManager = await _authService.hasRole('ROLE_MANAGER');
         final isEmployee = await _authService.hasRole('ROLE_EMPLOYEE');
-
+        final isUser = await _authService.hasRole('ROLE_USER');
         if (isAdmin) {
           Navigator.pushReplacement(
             context,
@@ -121,6 +121,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         } else if (isEmployee) {
           Navigator.pushReplacement(
             context,
+            MaterialPageRoute(builder: (_) => const EmployeeDashboardPage()),
+          );
+        } else if (isUser) {
+          Navigator.pushReplacement(
+            context,
             MaterialPageRoute(builder: (_) => const PublicPage()),
           );
         } else {
@@ -132,6 +137,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     } on PlatformException catch (e) {
       _showErrorSnackBar('Platform error: ${e.message}');
     } catch (e) {
+      print("Login error:--------------------------------- $e");
       _showErrorSnackBar('Login failed. Please try again.');
     } finally {
       if (mounted) {

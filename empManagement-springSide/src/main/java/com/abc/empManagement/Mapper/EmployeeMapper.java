@@ -25,7 +25,7 @@ public class EmployeeMapper {
 
         employee.setDepartment(department);
         employee.setRole(role);
-
+        System.out.print("role in dto-------------------------------"+ role);
         // default system value
         employee.setActive(true);
 

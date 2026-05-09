@@ -60,8 +60,13 @@ public class UserService {
 
         Role employeeRole = new Role();
         employeeRole.setRoleName("ROLE_EMPLOYEE");
-        employeeRole.setRoleDescription("Default role for newly created record");
+        employeeRole.setRoleDescription("role employee");
         roleRepository.save(employeeRole);
+
+        Role userRole = new Role();
+        userRole.setRoleName("ROLE_USER");
+        userRole.setRoleDescription("Default role for newly created record");
+        roleRepository.save(userRole);
 
         User adminUser = new User();
         adminUser.setUserName("murad");
@@ -73,7 +78,9 @@ public class UserService {
 
         Set<Role> adminRoles = new HashSet<>();
         adminRoles.add(adminRole);
+        adminRoles.add(managerRole);
         adminRoles.add(employeeRole);
+        adminRoles.add(userRole);
         adminUser.setRoles(adminRoles);
         userRepository.save(adminUser);
 

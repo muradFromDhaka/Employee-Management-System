@@ -14,4 +14,5 @@ public class EmployeeRequestDTO {
 
     private Long departmentId;
     private String roleName;
+    private String userName;
 }

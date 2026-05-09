@@ -7,9 +7,11 @@ import com.abc.empManagement.Mapper.EmployeeMapper;
 import com.abc.empManagement.entity.Department;
 import com.abc.empManagement.entity.Employee;
 import com.abc.empManagement.entity.Role;
+import com.abc.empManagement.entity.User;
 import com.abc.empManagement.repository.DepartmentRepository;
 import com.abc.empManagement.repository.EmployeeRepository;
 import com.abc.empManagement.repository.RoleRepository;
+import com.abc.empManagement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +26,7 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
     private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
 
     public List<EmployeeResponseDTO> getAll(){
         List<EmployeeResponseDTO> emps = employeeRepository.findAll()
@@ -40,32 +43,47 @@ public class EmployeeService {
     }
 
     public String create(EmployeeRequestDTO dto ){
+
         Department department = departmentRepository.findById(dto.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("Department not found"));
 
-        Role role = roleRepository.findById(dto.getRoleName())
+        Role role = roleRepository
+                .findByRoleName(dto.getRoleName())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
+        User user = userRepository.findByUserName(dto.getUserName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         Employee emp = mapper.toEntity(dto, department, role);
+
+        emp.setUser(user);
+
         String saveEmp = employeeRepository.save(emp).getName();
 
         return saveEmp;
     }
 
     public String update(Long id, EmployeeRequestDTO dto) {
+
         Department department = departmentRepository.findById(dto.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("Department not found"));
 
-        Role role = roleRepository.findById(dto.getRoleName())
+        Role role = roleRepository.findByRoleName(dto.getRoleName())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
+
+        User user = userRepository.findByUserName(dto.getUserName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         Employee existingEmployee = employeeRepository.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Employee not found with id: " + id)
                 );
-         mapper.toUpdateEntity(dto,existingEmployee, department, role);
-       return employeeRepository.save(existingEmployee).getName();
 
+        mapper.toUpdateEntity(dto, existingEmployee, department, role);
+
+        existingEmployee.setUser(user);
+
+        return employeeRepository.save(existingEmployee).getName();
     }
 
     public void delete(Long id){

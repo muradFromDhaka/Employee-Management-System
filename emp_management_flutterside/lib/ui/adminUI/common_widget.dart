@@ -45,13 +45,13 @@ class CommonAdminDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      {'icon': Icons.branding_watermark, 'title': 'Add Employee'},
-      {'icon': Icons.people_outline, 'title': 'Employee List '},
+      {'icon': Icons.people_outline, 'title': 'Employee '},
+      {'icon': Icons.inventory_2_outlined, 'title': 'Department'},
       {'icon': Icons.people_outline, 'title': 'Role Management'},
       // {'icon': Icons.receipt_long_outlined, 'title': 'Category'},
       // {'icon': Icons.branding_watermark, 'title': 'Orders'},
       // {'icon': Icons.dashboard_outlined, 'title': 'Payout'},
-      // {'icon': Icons.inventory_2_outlined, 'title': 'Inventory'},
+
       // {'icon': Icons.receipt_long_outlined, 'title': 'Deals'},
       // {'icon': Icons.settings_outlined, 'title': 'Repors'},
       // {'icon': Icons.dashboard_outlined, 'title': 'RoleManagement'},

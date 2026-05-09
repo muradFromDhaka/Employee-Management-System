@@ -104,9 +104,9 @@ public class AdminController {
        try {
            roleService.delete(roleName);
        }catch (Exception e){
-           System.out.print("exception:=================" + e);
+           System.out.print("exception: " + e);
        }
-         return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build(); // 204 SUCCESS
     }
 
     // SYSTEM STATISTICS - Only super admin can access

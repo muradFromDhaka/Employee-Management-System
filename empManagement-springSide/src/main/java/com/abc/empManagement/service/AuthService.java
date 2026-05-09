@@ -65,7 +65,7 @@ public class AuthService {
 
 
     public String initializeRoles() {
-        String[] defaultRoles = {"USER", "ADMIN", "MODERATOR","VENDOR"};
+        String[] defaultRoles = {"ADMIN", "MANAGER","EMPLOYEE","USER"};
         for (String roleName : defaultRoles) {
             if (!roleRepository.existsById(roleName)) {
                 Role role = new Role();

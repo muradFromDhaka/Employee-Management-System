@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/employees")
+@RequestMapping("/api/employees")
 @RequiredArgsConstructor
 public class EmployeeController {
 
@@ -34,17 +34,11 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.getById(id));
     }
 
-    // =========================
-    // CREATE
-    // =========================
     @PostMapping
     public ResponseEntity<String> create(@RequestBody EmployeeRequestDTO dto) {
         return ResponseEntity.ok(employeeService.create(dto));
     }
 
-    // =========================
-    // UPDATE FULL
-    // =========================
     @PutMapping("/{id}")
     public ResponseEntity<String> update(
             @PathVariable Long id,
@@ -66,7 +60,7 @@ public class EmployeeController {
     // SEARCH BY NAME
     // =========================
     @GetMapping("/search")
-    public ResponseEntity<List<EmployeeResponseDTO>> searchByName(
+    public ResponseEntity<List<EmployeeResponseDTO>> searchByEmployeeName(
             @RequestParam String name) {
 
         return ResponseEntity.ok(employeeService.searchByName(name));
@@ -96,7 +90,7 @@ public class EmployeeController {
     // DEACTIVATE EMPLOYEE (SOFT DELETE)
     // =========================
     @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+    public ResponseEntity<Void> deactivateEmployee(@PathVariable Long id) {
         employeeService.deactivateEmployee(id);
         return ResponseEntity.noContent().build();
     }

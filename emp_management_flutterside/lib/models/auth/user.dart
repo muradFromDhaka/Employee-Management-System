@@ -1,4 +1,3 @@
-
 import 'package:emp_management_flutterside/models/auth/role.dart';
 
 class User {
@@ -26,7 +25,13 @@ class User {
       email: json['email'],
       enabled: json['enabled'],
       roles: json['roles'] != null
-          ? (json['roles'] as List).map((e) => Role.fromJson(e)).toList()
+          ? (json['roles'] as List).map((e) {
+              if (e is String) {
+                return Role(roleName: e);
+              } else {
+                return Role.fromJson(e);
+              }
+            }).toList()
           : null,
     );
   }

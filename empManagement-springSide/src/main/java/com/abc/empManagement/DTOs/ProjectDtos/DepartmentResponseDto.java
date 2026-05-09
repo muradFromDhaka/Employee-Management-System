@@ -11,6 +11,4 @@ public class DepartmentResponseDto {
     private String depName;
     private String location;
 
-    private int totalEmployees;
-
 }

@@ -1,6 +1,7 @@
 import 'package:emp_management_flutterside/services/auth_service.dart';
 import 'package:emp_management_flutterside/ui/adminUI/admin_dashboard.dart';
 import 'package:emp_management_flutterside/ui/authUI/login_page.dart';
+import 'package:emp_management_flutterside/ui/employeeUI/employee_dashboard_page.dart';
 import 'package:emp_management_flutterside/ui/managerUI/manager_dashboard.dart';
 import 'package:emp_management_flutterside/ui/publicUI/publicPage.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +29,7 @@ class _SplashPageState extends State<SplashPage> {
     final token = await _authService.getToken();
 
     if (!mounted) return;
-    print("mounted: $mounted");
+    // print("mounted: $mounted");
 
 
 
@@ -36,6 +37,7 @@ class _SplashPageState extends State<SplashPage> {
       final isAdmin = await _authService.hasRole('ROLE_ADMIN');
       final   isManager = await _authService.hasRole('ROLE_MANAGER');
       final isEmployee = await _authService.hasRole('ROLE_EMPLOYEE');
+      final isUser = await _authService.hasRole('ROLE_USER');
 
       if (isAdmin) {
         Navigator.pushReplacement(
@@ -50,6 +52,11 @@ class _SplashPageState extends State<SplashPage> {
       } else if (isEmployee) {
         Navigator.pushReplacement(
           context,
+          MaterialPageRoute(builder: (_) => const EmployeeDashboardPage()),
+        );
+      } else if (isUser) {
+        Navigator.pushReplacement(
+          context,
           MaterialPageRoute(builder: (_) => const PublicPage()),
         );
       } else {
@@ -57,10 +64,6 @@ class _SplashPageState extends State<SplashPage> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text("No role assigned!")));
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
-        );
       }
     } else {
       // token নেই → public view

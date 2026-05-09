@@ -1,6 +1,6 @@
 import 'package:emp_management_flutterside/services/auth_service.dart';
 import 'package:emp_management_flutterside/ui/adminUI/common_widget.dart';
-import 'package:emp_management_flutterside/ui/adminUI/employee/add.dart';
+import 'package:emp_management_flutterside/ui/adminUI/department/department_list.dart';
 import 'package:emp_management_flutterside/ui/adminUI/employee/list.dart';
 import 'package:emp_management_flutterside/ui/adminUI/roll_management_page.dart';
 import 'package:emp_management_flutterside/ui/authUI/login_page.dart';
@@ -18,8 +18,8 @@ class _AdminHomePageState extends State<AdminDashboardPage> {
   final _authService = AuthService();
 
   final pages = [
-    EmployeeForm(),
     EmployeeList(),
+    DepartmentList(),
     RoleManagementPage(),
   ];
 
