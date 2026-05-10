@@ -28,14 +28,16 @@ class AdminService {
     throw Exception("Failed to load roles");
   }
 
-  Future<List<dynamic>> getAllUsers() async {
+  Future<List<User>> getAllUsers() async {
     final res = await http.get(
       Uri.parse("${ApiConfig.baseURL}/users"),
       headers: await _authService.headers(auth: true),
     );
 
     if (res.statusCode == 200) {
-      return jsonDecode(res.body);
+      return (jsonDecode(res.body) as List)
+          .map((e) => User.fromJson(e))
+          .toList();
     }
 
     throw Exception("Failed to load users");

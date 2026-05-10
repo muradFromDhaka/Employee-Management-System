@@ -17,6 +17,8 @@ public class AttendanceResponseDTO {
     private LocalTime checkIn;
     private LocalTime checkOut;
 
+    private String workingHours; // calculated field
+
     private Long employeeId;
     private String employeeName;
 }

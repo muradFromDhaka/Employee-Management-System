@@ -77,7 +77,6 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
       showMessage("Leave request submitted successfully", isError: false);
       Navigator.pop(context, response);
     } catch (e) {
-      print("e--------------------------- $e");
       showMessage(e.toString());
     } finally {
       if (mounted) {
@@ -117,11 +116,12 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
         title: const Text(
           "Apply Leave",
           style: TextStyle(
+            color: Color.fromARGB(255, 124, 241, 236),
             fontWeight: FontWeight.bold,
-            color: Colors.deepPurple,
           ),
         ),
-        backgroundColor: const Color.fromARGB(255, 135, 192, 238),
+        titleSpacing: 5,
+        backgroundColor: const Color.fromARGB(255, 149, 39, 240),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

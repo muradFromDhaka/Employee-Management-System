@@ -1,3 +1,4 @@
+import 'package:emp_management_flutterside/models/auth/role.dart';
 import 'package:emp_management_flutterside/services/admin_service.dart';
 import 'package:emp_management_flutterside/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,7 @@ class RoleManagementPage extends StatefulWidget {
 class _RoleManagementPageState extends State<RoleManagementPage> {
   final AdminService _adminService = AdminService();
 
-  List<dynamic> _roles = [];
+  List<Role> _roles = [];
   List<dynamic> _usersByRole = [];
 
   bool _isRolesLoading = true;
@@ -24,7 +25,9 @@ class _RoleManagementPageState extends State<RoleManagementPage> {
   @override
   void initState() {
     super.initState();
-    _loadRoles();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadRoles();
+    });
   }
 
   Future<void> _deleteRole(String roleName) async {
@@ -52,7 +55,7 @@ class _RoleManagementPageState extends State<RoleManagementPage> {
       await AuthService().deleteRole(roleName);
 
       setState(() {
-        _roles.removeWhere((role) => role['roleName'] == roleName);
+        _roles.removeWhere((role) => role.roleName == roleName);
       });
 
       ScaffoldMessenger.of(
@@ -320,7 +323,7 @@ class _RoleManagementPageState extends State<RoleManagementPage> {
                     itemCount: _roles.length,
                     itemBuilder: (context, index) {
                       final role = _roles[index];
-                      final roleName = role['roleName'] ?? "Unnamed Role";
+                      final roleName = role.roleName ?? "Unnamed Role";
 
                       return Card(
                         color: const Color.fromARGB(255, 223, 208, 208),

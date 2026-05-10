@@ -1,13 +1,16 @@
+import 'package:emp_management_flutterside/models/attendance.dart';
 import 'package:emp_management_flutterside/models/auth/user.dart';
 import 'package:emp_management_flutterside/models/employee.dart';
 import 'package:emp_management_flutterside/models/leaveRequest.dart';
 import 'package:emp_management_flutterside/services/admin_service.dart';
+import 'package:emp_management_flutterside/services/attendanceService.dart';
 import 'package:emp_management_flutterside/services/auth_service.dart';
 import 'package:emp_management_flutterside/services/employee_service.dart';
 import 'package:emp_management_flutterside/services/leaveRequest_service.dart';
 import 'package:emp_management_flutterside/ui/authUI/login_page.dart';
-import 'package:emp_management_flutterside/ui/employeeUI/leave_request.dart/add.dart';
-import 'package:emp_management_flutterside/ui/employeeUI/leave_request.dart/list.dart';
+import 'package:emp_management_flutterside/ui/employeeUI/attendance/attendanceDashboard.dart';
+import 'package:emp_management_flutterside/ui/employeeUI/leave_request/add.dart';
+import 'package:emp_management_flutterside/ui/employeeUI/leave_request/list.dart';
 import 'package:flutter/material.dart';
 
 class EmployeeDashboardPage extends StatefulWidget {
@@ -23,8 +26,12 @@ class _EmployeeDashboardPageState extends State<EmployeeDashboardPage> {
   final AdminService _adminService = AdminService();
   final __leaveRequestService = LeaveRequestService();
   final _employeeService = EmployeeService();
+  final AttendanceService _attendanceService = AttendanceService();
+
+  AttendanceResponse? todayAttendance;
 
   EmployeeResponseDto? _employee;
+  int? _employeeId;
   int totalLeaves = 0;
   int approvedLeaves = 0;
   int pendingLeaves = 0;
@@ -43,37 +50,45 @@ class _EmployeeDashboardPageState extends State<EmployeeDashboardPage> {
   Future<void> _loadCurrentUser() async {
     // await Future.delayed(const Duration(milliseconds: 500));
     try {
+      print("🔥 LOAD STARTED");
       final jwtUser = await _authService.getCurrentUser2();
       final user = await _adminService.getUserByUsername(jwtUser!.userName);
       _employee = await _employeeService.getEmployeeByUsername(
         jwtUser.userName,
       );
-      final employeeId = _employee?.id ?? 0;
+      print("STEP 1: API CALL START");
+      final list = await _attendanceService.getMyAttendance();
+      print("STEP 2: LIST SIZE = ${list.length}");
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+      final found = list.where((e) => e.date == today).toList();
+
+      _employeeId = _employee?.id ?? 0;
       final results = await Future.wait([
         __leaveRequestService.countLeavesByEmployeeIdAndStatus(
-          employeeId,
+          _employeeId!,
           null,
         ),
         __leaveRequestService.countLeavesByEmployeeIdAndStatus(
-          employeeId,
+          _employeeId!,
           LeaveStatus.APPROVED,
         ),
         __leaveRequestService.countLeavesByEmployeeIdAndStatus(
-          employeeId,
+          _employeeId!,
           LeaveStatus.PENDING,
         ),
         __leaveRequestService.countLeavesByEmployeeIdAndStatus(
-          employeeId,
+          _employeeId!,
           LeaveStatus.REJECTED,
         ),
         __leaveRequestService.countLeavesByEmployeeIdAndStatus(
-          employeeId,
+          _employeeId!,
           LeaveStatus.CANCELLED,
         ),
       ]);
 
       setState(() {
         _currentUser = user;
+        todayAttendance = found.isNotEmpty ? found.first : null;
 
         totalLeaves = results[0];
         approvedLeaves = results[1];
@@ -81,6 +96,11 @@ class _EmployeeDashboardPageState extends State<EmployeeDashboardPage> {
         rejectedLeaves = results[3];
         cancelledLeaves = results[4];
       });
+
+      print("TODAY: $today");
+      for (var e in list) {
+        print("DB DATE: ${e.date}");
+      }
     } catch (e) {
       print("Error loading current user: $e");
     }
@@ -101,20 +121,28 @@ class _EmployeeDashboardPageState extends State<EmployeeDashboardPage> {
       appBar: AppBar(
         title: const Text(
           "Employee Dashboard",
-          style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Color.fromARGB(255, 124, 241, 236),
+            fontWeight: FontWeight.bold,
+          ),
         ),
         titleSpacing: 20,
         // centerTitle: true,
-        backgroundColor: const Color.fromARGB(255, 135, 192, 238),
+        backgroundColor: const Color.fromARGB(255, 143, 27, 238),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(
+              Icons.logout,
+              color: Colors.pink,
+              fontWeight: FontWeight.bold,
+            ),
             onPressed: () {
               _onLogout();
             },
           ),
         ],
       ),
+      backgroundColor: const Color.fromARGB(255, 222, 220, 247),
       body: RefreshIndicator(
         onRefresh: _loadCurrentUser,
         child: SingleChildScrollView(
@@ -129,7 +157,7 @@ class _EmployeeDashboardPageState extends State<EmployeeDashboardPage> {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 162, 128, 216),
+                      color: Color.fromARGB(255, 154, 104, 235),
                     ),
                   ),
                   SizedBox(width: 4),
@@ -202,7 +230,14 @@ class _EmployeeDashboardPageState extends State<EmployeeDashboardPage> {
                     icon: Icons.access_time,
                     title: "Attendance",
                     color: Colors.green,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AttendanceDashboard(),
+                        ),
+                      );
+                    },
                   ),
 
                   _buildActionCard(
@@ -316,7 +351,12 @@ class _EmployeeDashboardPageState extends State<EmployeeDashboardPage> {
                 approvedLeaves.toString(),
                 Colors.green,
               ),
-              _buildActivityTile("Attendance Marked", "Today", Colors.blue),
+              // _buildActivityTile("Attendance Marked", "Today", Colors.blue),
+              _buildActivityTile(
+                "Today's Attendance",
+                todayAttendance?.status ?? "Not Marked",
+                Colors.blue,
+              ),
             ],
           ),
         ),

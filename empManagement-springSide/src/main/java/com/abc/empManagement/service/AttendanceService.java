@@ -21,45 +21,73 @@ public class AttendanceService {
     private final EmployeeRepository employeeRepository;
     private final AttendanceMapper attendanceMapper;
 
+    private static final LocalTime START_TIME = LocalTime.of(9, 0);
 
-    public AttendanceResponseDTO checkIn(Long employeeId) {
-
-        Employee emp = employeeRepository.findById(employeeId)
+    // For internal use;
+    private Employee getEmployee(String username) {
+        return employeeRepository.findByUser_UserName(username)
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found"));
+    }
 
-        if (hasCheckedInToday(employeeId)) {
+    public List<AttendanceResponseDTO> getAll(){
+        List<AttendanceResponseDTO> dto = attendanceRepository.findAll()
+                .stream()
+                .map((a) -> attendanceMapper.toDto(a))
+                .toList();
+
+        return dto;
+    }
+
+
+    public AttendanceResponseDTO checkIn(String username) {
+
+         Employee emp = getEmployee(username);
+
+        if (hasCheckedInToday(emp.getId())) {
             throw new RuntimeException("Already checked in today");
         }
 
         Attendance attendance = new Attendance();
         attendance.setEmployee(emp);
         attendance.setDate(LocalDate.now());
-        attendance.setCheckIn(LocalTime.now());
+
+        LocalTime now = LocalTime.now();
+
+        attendance.setCheckIn(now);
+
+        attendance.setStatus(
+                now.isAfter(START_TIME) ? "LATE" : "PRESENT"
+        );
+
 
         return attendanceMapper.toDto(attendanceRepository.save(attendance));
     }
 
 
-    public AttendanceResponseDTO checkOut(Long employeeId) {
+    public AttendanceResponseDTO checkOut(String username) {
+
+        Employee emp = getEmployee(username);
 
         Attendance attendance = attendanceRepository
-                .findTodayAttendance(employeeId, LocalDate.now())
+                .findTodayAttendance(emp.getId(), LocalDate.now())
                 .orElseThrow(() -> new RuntimeException("No check-in found for today"));
 
         if (attendance.getCheckOut() != null) {
             throw new RuntimeException("Already checked out today");
         }
 
-        attendance.setCheckOut(LocalTime.now());
+        LocalTime checkOutTime = LocalTime.now();
+        attendance.setCheckOut(checkOutTime);
 
-        return attendanceMapper.toDto(attendanceRepository.save(attendance));
-    }
+        Attendance saved = attendanceRepository.save(attendance);
 
-    public List<AttendanceResponseDTO> getAll() {
-        return attendanceRepository.findAll()
-                .stream()
-                .map(attendanceMapper::toDto)
-                .toList();
+        AttendanceResponseDTO dto = attendanceMapper.toDto(saved);
+
+        dto.setWorkingHours(
+                calculateWorkingHours(saved.getCheckIn(), saved.getCheckOut())
+        );
+
+        return dto;
     }
 
     public AttendanceResponseDTO getById(Long id) {
@@ -69,35 +97,44 @@ public class AttendanceService {
         return attendanceMapper.toDto(att);
     }
 
-    public List<AttendanceResponseDTO> getByEmployee(Long employeeId) {
-        return attendanceRepository.findByEmployeeId(employeeId)
+    public List<AttendanceResponseDTO> getByCurrentEmployee(String username) {
+
+        Employee emp = employeeRepository.findByUser_UserName(username)
+                .orElseThrow(()-> new EntityNotFoundException("Employee not found with username: " + username));
+
+        return attendanceRepository.findByEmployeeId(emp.getId())
                 .stream()
-                .map(attendanceMapper::toDto)
+                .map((a)-> attendanceMapper.toDto(a))
                 .toList();
     }
 
-    public List<AttendanceResponseDTO> getByDate(LocalDate date) {
+    public List<AttendanceResponseDTO> getBySelectedDate(LocalDate date) {
         return attendanceRepository.findByDate(date)
                 .stream()
-                .map(attendanceMapper::toDto)
+                .map((a)-> attendanceMapper.toDto(a))
                 .toList();
     }
 
 
-    public long countPresentDays(Long employeeId) {
-        return attendanceRepository.countByEmployeeId(employeeId);
+    public long countPresentDays(String username) {
+        Employee emp = employeeRepository.findByUser_UserName(username)
+                .orElseThrow(()-> new EntityNotFoundException("Employee not found with username: " +username));
+
+        return attendanceRepository.countByEmployeeId(emp.getId());
     }
 
-    public Duration calculateWorkingHours(Long attendanceId) {
+    private String calculateWorkingHours(LocalTime checkIn, LocalTime checkOut) {
 
-        Attendance att = attendanceRepository.findById(attendanceId)
-                .orElseThrow(() -> new EntityNotFoundException("Attendance not found"));
-
-        if (att.getCheckIn() == null || att.getCheckOut() == null) {
-            return Duration.ZERO;
+        if (checkIn == null || checkOut == null) {
+            return null;
         }
 
-        return Duration.between(att.getCheckIn(), att.getCheckOut());
+        Duration duration = Duration.between(checkIn, checkOut);
+
+        long hours = duration.toHours();
+        long minutes = duration.toMinutes() % 60;
+
+        return hours + "h " + minutes + "m";
     }
 
 
@@ -105,9 +142,11 @@ public class AttendanceService {
         return attendanceRepository.existsByEmployeeIdAndDate(employeeId, LocalDate.now());
     }
 
-    public boolean hasOpenAttendance(Long employeeId) {
+    public boolean hasOpenAttendance(String username) {
+        Employee emp = employeeRepository.findByUser_UserName(username)
+                .orElseThrow(()-> new EntityNotFoundException("Employee not found with username: " + username));
         return attendanceRepository.existsByEmployeeIdAndDateAndCheckOutIsNull(
-                employeeId, LocalDate.now()
+                emp.getId(), LocalDate.now()
         );
     }
 
@@ -119,15 +158,17 @@ public class AttendanceService {
         attendanceRepository.delete(att);
     }
 
-    public List<AttendanceResponseDTO> getMonthlyAttendance(Long employeeId, YearMonth month) {
+    public List<AttendanceResponseDTO> getMonthlyAttendance(String username, YearMonth month) {
+        Employee emp = employeeRepository.findByUser_UserName(username)
+                .orElseThrow(()-> new EntityNotFoundException("Employee not found with username:"+ username));
 
         LocalDate start = month.atDay(1);
         LocalDate end = month.atEndOfMonth();
 
         return attendanceRepository
-                .findByEmployeeIdAndDateBetween(employeeId, start, end)
+                .findByEmployeeIdAndDateBetween(emp.getId(), start, end)
                 .stream()
-                .map(attendanceMapper::toDto)
+                .map((a)-> attendanceMapper.toDto(a))
                 .toList();
     }
 }

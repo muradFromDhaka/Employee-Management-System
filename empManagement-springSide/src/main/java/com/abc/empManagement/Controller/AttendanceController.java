@@ -3,8 +3,10 @@ package com.abc.empManagement.Controller;
 import com.abc.empManagement.DTOs.ProjectDtos.AttendanceResponseDTO;
 import com.abc.empManagement.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -20,19 +22,37 @@ public class AttendanceController {
     // =========================
     // CHECK-IN (ONLY SELF)
     // =========================
-    @PreAuthorize("hasRole('EMPLOYEE') and #employeeId == authentication.principal.id")
-    @PostMapping("/check-in/{employeeId}")
-    public ResponseEntity<AttendanceResponseDTO> checkIn(@PathVariable Long employeeId) {
-        return ResponseEntity.ok(attendanceService.checkIn(employeeId));
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PostMapping("/check-in")
+    public ResponseEntity<AttendanceResponseDTO> checkIn(Authentication auth) {
+       try {
+           String username = auth.getName();
+           return ResponseEntity.ok(attendanceService.checkIn(username));
+       }catch (Exception e){
+           System.out.println("Exception: " + e.getMessage());
+
+           return ResponseEntity
+                   .status(HttpStatus.BAD_REQUEST)
+                   .body(null);
+       }
     }
 
     // =========================
     // CHECK-OUT (ONLY SELF)
     // =========================
-    @PreAuthorize("hasRole('EMPLOYEE') and #employeeId == authentication.principal.id")
-    @PostMapping("/check-out/{employeeId}")
-    public ResponseEntity<AttendanceResponseDTO> checkOut(@PathVariable Long employeeId) {
-        return ResponseEntity.ok(attendanceService.checkOut(employeeId));
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PostMapping("/check-out")
+    public ResponseEntity<AttendanceResponseDTO> checkOut(Authentication auth) {
+        try {
+            String username = auth.getName();
+            return ResponseEntity.ok(attendanceService.checkOut(username));
+        }catch (Exception e){
+            System.out.println("Exception: " + e.getMessage());
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(null);
+        }
     }
 
     // =========================
@@ -56,19 +76,19 @@ public class AttendanceController {
     // =========================
     // GET BY EMPLOYEE (SELF OR ADMIN)
     // =========================
-    @PreAuthorize("hasRole('ADMIN') or #employeeId == authentication.principal.id")
-    @GetMapping("/employee/{employeeId}")
-    public ResponseEntity<List<AttendanceResponseDTO>> getByEmployee(@PathVariable Long employeeId) {
-        return ResponseEntity.ok(attendanceService.getByEmployee(employeeId));
+    @PreAuthorize("hasAnyRole('EMPLOYEE')")
+    @GetMapping("/employee")
+    public ResponseEntity<List<AttendanceResponseDTO>> getByCurrentEmployee(Authentication auth) {
+        return ResponseEntity.ok(attendanceService.getByCurrentEmployee(auth.getName()));
     }
 
     // =========================
     // GET BY DATE (ADMIN ONLY)
     // =========================
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/date")
-    public ResponseEntity<List<AttendanceResponseDTO>> getByDate(@RequestParam LocalDate date) {
-        return ResponseEntity.ok(attendanceService.getByDate(date));
+    @GetMapping("/selectedDate")
+    public ResponseEntity<List<AttendanceResponseDTO>> getBySelectedDate(@RequestParam LocalDate date) {
+        return ResponseEntity.ok(attendanceService.getBySelectedDate(date));
     }
 
     // =========================
@@ -84,43 +104,33 @@ public class AttendanceController {
     // =========================
     // COUNT PRESENT DAYS
     // =========================
-    @PreAuthorize("hasRole('ADMIN') or #employeeId == authentication.principal.id")
-    @GetMapping("/count/{employeeId}")
-    public ResponseEntity<Long> countPresentDays(@PathVariable Long employeeId) {
-        return ResponseEntity.ok(attendanceService.countPresentDays(employeeId));
+    @PreAuthorize("hasAnyRole('EMPLOYEE')")
+    @GetMapping("/count")
+    public ResponseEntity<Long> countPresentDays(Authentication auth) {
+        return ResponseEntity.ok(attendanceService.countPresentDays(auth.getName()));
     }
 
-    // =========================
-    // WORKING HOURS
-    // =========================
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/working-hours/{attendanceId}")
-    public ResponseEntity<String> workingHours(@PathVariable Long attendanceId) {
-        return ResponseEntity.ok(
-                attendanceService.calculateWorkingHours(attendanceId).toString()
-        );
-    }
 
     // =========================
     // MONTHLY REPORT
     // =========================
-    @PreAuthorize("hasRole('ADMIN') or #employeeId == authentication.principal.id")
+    @PreAuthorize("hasRole('EMPLOYEE')")
     @GetMapping("/monthly")
     public ResponseEntity<List<AttendanceResponseDTO>> monthly(
-            @RequestParam Long employeeId,
+           Authentication auth,
             @RequestParam String month
     ) {
         YearMonth ym = YearMonth.parse(month);
 
         return ResponseEntity.ok(
-                attendanceService.getMonthlyAttendance(employeeId, ym)
+                attendanceService.getMonthlyAttendance(auth.getName(), ym)
         );
     }
 
-    @PreAuthorize("hasRole('ADMIN') or #employeeId == authentication.principal.id")
-    @GetMapping("/employees/{employeeId}/open")
-    public ResponseEntity<Boolean> hasOpenAttendance(@PathVariable Long employeeId) {
-        return ResponseEntity.ok(attendanceService.hasOpenAttendance(employeeId));
+    @PreAuthorize("hasAnyRole('EMPLOYEE')")
+    @GetMapping("/employees/open")
+    public ResponseEntity<Boolean> hasOpenAttendance(Authentication auth) {
+        return ResponseEntity.ok(attendanceService.hasOpenAttendance(auth.getName()));
     }
 
 }

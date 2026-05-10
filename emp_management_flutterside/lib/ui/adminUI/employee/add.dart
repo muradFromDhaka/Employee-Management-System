@@ -1,6 +1,7 @@
 
 
 import 'package:emp_management_flutterside/models/auth/role.dart';
+import 'package:emp_management_flutterside/models/auth/user.dart';
 import 'package:emp_management_flutterside/models/department.dart';
 import 'package:flutter/material.dart';
 import 'package:emp_management_flutterside/models/employee.dart';
@@ -36,7 +37,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
 
   List<DepartmentResponseDto> departments = [];
   List<Role> roles = [];
-  List<dynamic> users = [];
+  List<User> users = [];
 
   @override
   void initState() {
@@ -169,8 +170,8 @@ class _EmployeeFormState extends State<EmployeeForm> {
                 initialValue: selectedUserName,
                 items: users.map<DropdownMenuItem<String>>((user) {
                   return DropdownMenuItem<String>(
-                    value: user['userName'], // MUST MATCH BACKEND KEY
-                    child: Text(user['userName'] ?? user['name'] ?? ""),
+                    value: user.userName, // MUST MATCH BACKEND KEY
+                    child: Text(user.userName ?? ""),
                   );
                 }).toList(),
                 onChanged: (value) {

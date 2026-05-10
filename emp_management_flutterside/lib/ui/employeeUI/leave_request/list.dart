@@ -1,6 +1,6 @@
 import 'package:emp_management_flutterside/models/leaveRequest.dart';
 import 'package:emp_management_flutterside/services/leaveRequest_service.dart';
-import 'package:emp_management_flutterside/ui/employeeUI/leave_request.dart/add.dart';
+import 'package:emp_management_flutterside/ui/employeeUI/leave_request/add.dart';
 import 'package:flutter/material.dart';
 
 class LeaveRequestList extends StatefulWidget {
@@ -57,12 +57,12 @@ class _LeaveRequestListState extends State<LeaveRequestList> {
         title: const Text(
           "My Leave Requests",
           style: TextStyle(
+            color: Color.fromARGB(255, 124, 241, 236),
             fontWeight: FontWeight.bold,
-            color: Colors.deepPurple,
           ),
         ),
-        titleSpacing: 0,
-        backgroundColor: const Color.fromARGB(255, 135, 192, 238),
+        titleSpacing: 5,
+        backgroundColor: const Color.fromARGB(255, 149, 39, 240),
         actions: [
           IconButton(
             onPressed: () {

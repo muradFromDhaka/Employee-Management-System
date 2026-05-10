@@ -18,16 +18,12 @@ class _EmployeeListState extends State<EmployeeList> {
   @override
   void initState() {
     super.initState();
-    _loadEmployees();
-  }
-
-  void _loadEmployees() {
     _employees = _service.getEmployees();
   }
 
   Future<void> _refresh() async {
     setState(() {
-      _loadEmployees();
+      _employees = _service.getEmployees();
     });
   }
 
@@ -69,7 +65,6 @@ class _EmployeeListState extends State<EmployeeList> {
               ).then((value) {
                 if (value == true) {
                   _refresh();
-                  _loadEmployees();
                 }
               });
             },
