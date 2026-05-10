@@ -122,12 +122,12 @@ public class LeaveRequestController {
     // =========================
     @PreAuthorize("hasRole('ADMIN') or hasRole('EMPLOYEE')")
     @GetMapping("/count")
-    public ResponseEntity<Long> count(
+    public ResponseEntity<Long> countLeaves(
             @RequestParam Long employeeId,
-            @RequestParam LeaveStatus status
+            @RequestParam(required = false) LeaveStatus status
     ) {
         return ResponseEntity.ok(
-                leaveRequestService.countLeaves(employeeId, status)
+                leaveRequestService.countLeavesByIdAndStatus(employeeId, status)
         );
     }
 

@@ -29,7 +29,6 @@ public class LeaveRequestService {
             LeaveRequestDTO dto,
             String username
     ) {
-        System.out.println("JWT USERNAME:--------------------- " + username);
         Employee employee = employeeRepository
                 .findByUser_UserName(username)
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found"));
@@ -140,8 +139,15 @@ public class LeaveRequestService {
                 .toList();
     }
 
-    public long countLeaves(Long employeeId, LeaveStatus status) {
+    public long countLeavesByIdAndStatus(Long employeeId, LeaveStatus status) {
+        if(status == null){
+            return leaveRequestRepository.countByEmployeeId(employeeId);
+        }
         return leaveRequestRepository.countByEmployeeIdAndStatus(employeeId, status);
+    }
+
+    public long countLeaveByEmployeeId(Long id){
+       return leaveRequestRepository.countByEmployeeId(id);
     }
 
     public void delete(Long id) {

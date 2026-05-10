@@ -23,7 +23,6 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
 
   bool isLoading = false;
 
-
   // =========================
   // PICK DATE
   // =========================
@@ -114,7 +113,16 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Apply Leave"),backgroundColor: const Color.fromARGB(255, 135, 192, 238)),
+      appBar: AppBar(
+        title: const Text(
+          "Apply Leave",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.deepPurple,
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 135, 192, 238),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
 
@@ -215,7 +223,13 @@ class _LeaveRequestFormState extends State<LeaveRequestForm> {
                             color: Color.fromARGB(255, 252, 251, 251),
                           ),
                         )
-                      : const Text("Submit"),
+                      : const Text(
+                          "Submit",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 17,
+                          ),
+                        ),
                 ),
               ),
             ],

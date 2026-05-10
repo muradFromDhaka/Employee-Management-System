@@ -12,6 +12,7 @@ import com.abc.empManagement.repository.DepartmentRepository;
 import com.abc.empManagement.repository.EmployeeRepository;
 import com.abc.empManagement.repository.RoleRepository;
 import com.abc.empManagement.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,12 @@ public class EmployeeService {
         Employee emp = employeeRepository.findById(id)
                 .orElseThrow(()-> new RuntimeException("Employee not found with id: " + id));
          return mapper.toDto(emp);
+    }
+
+    public EmployeeResponseDTO getByUsername(String username){
+        Employee emp =employeeRepository.findByUser_UserName(username)
+                .orElseThrow(()-> new EntityNotFoundException("Employee not found with username: " + username));
+      return mapper.toDto(emp);
     }
 
     public String create(EmployeeRequestDTO dto ){

@@ -113,10 +113,19 @@ class LeaveRequestService {
     return (data as List).map((e) => LeaveResponseDTO.fromJson(e)).toList();
   }
 
-  Future<int> countLeaves(int employeeId, String status) async {
+
+  Future<int> countLeavesByEmployeeIdAndStatus(
+    int employeeId, [
+    LeaveStatus? status,
+  ]) async {
+    final queryParams = {
+      "employeeId": employeeId.toString(),
+      if (status != null) "status": status.name,
+    };
+
     final uri = Uri.parse(
-      "$baseUrl/count?employeeId=$employeeId&status=$status",
-    );
+      "$baseUrl/count",
+    ).replace(queryParameters: queryParams);
 
     final response = await http.get(
       uri,
@@ -125,6 +134,7 @@ class LeaveRequestService {
 
     return handleResponse(response) as int;
   }
+
 
   Future<bool> deleteLeave(int id) async {
     final response = await http.delete(

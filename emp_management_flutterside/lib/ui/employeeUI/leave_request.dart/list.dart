@@ -95,7 +95,7 @@ class _LeaveRequestListState extends State<LeaveRequestList> {
 
                 return Card(
                   margin: const EdgeInsets.all(10),
-                  child: Container(
+                  child: SizedBox(
                     height: 120,
                     width: 120,
                     child: ListTile(

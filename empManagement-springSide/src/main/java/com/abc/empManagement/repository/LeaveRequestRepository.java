@@ -55,4 +55,7 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
 
     // 9. Existence check (validation / safety)
     boolean existsByIdAndStatus(Long id, LeaveStatus status);
+
+    // 10. TOTAL leaves
+    long countByEmployeeId(Long employeeId);
 }

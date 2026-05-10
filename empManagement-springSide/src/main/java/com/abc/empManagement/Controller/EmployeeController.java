@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,11 @@ public class EmployeeController {
     @GetMapping("/{id}")
     public ResponseEntity<EmployeeResponseDTO> getById(@PathVariable Long id) {
         return ResponseEntity.ok(employeeService.getById(id));
+    }
+    @GetMapping("/me")
+    public ResponseEntity<EmployeeResponseDTO> getByUsername(Authentication auth){
+        String username = auth.getName();
+        return ResponseEntity.ok(employeeService.getByUsername(username));
     }
 
     @PostMapping

@@ -1,6 +1,10 @@
 import 'package:emp_management_flutterside/models/auth/user.dart';
+import 'package:emp_management_flutterside/models/employee.dart';
+import 'package:emp_management_flutterside/models/leaveRequest.dart';
 import 'package:emp_management_flutterside/services/admin_service.dart';
 import 'package:emp_management_flutterside/services/auth_service.dart';
+import 'package:emp_management_flutterside/services/employee_service.dart';
+import 'package:emp_management_flutterside/services/leaveRequest_service.dart';
 import 'package:emp_management_flutterside/ui/authUI/login_page.dart';
 import 'package:emp_management_flutterside/ui/employeeUI/leave_request.dart/add.dart';
 import 'package:emp_management_flutterside/ui/employeeUI/leave_request.dart/list.dart';
@@ -17,20 +21,65 @@ class _EmployeeDashboardPageState extends State<EmployeeDashboardPage> {
   final String employeeName = "John Doe";
   final AuthService _authService = AuthService();
   final AdminService _adminService = AdminService();
+  final __leaveRequestService = LeaveRequestService();
+  final _employeeService = EmployeeService();
+
+  EmployeeResponseDto? _employee;
+  int totalLeaves = 0;
+  int approvedLeaves = 0;
+  int pendingLeaves = 0;
+  int rejectedLeaves = 0;
+  int cancelledLeaves = 0;
+
   User? _currentUser;
   @override
   void initState() {
     super.initState();
-    _loadCurrentUser();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadCurrentUser();
+    });
   }
 
-  void _loadCurrentUser() async {
+  Future<void> _loadCurrentUser() async {
+    // await Future.delayed(const Duration(milliseconds: 500));
     try {
-      final userName = await _authService.getCurrentUser2();
-      final user = await _adminService.getUserByUsername(userName!.userName);
-      ;
+      final jwtUser = await _authService.getCurrentUser2();
+      final user = await _adminService.getUserByUsername(jwtUser!.userName);
+      _employee = await _employeeService.getEmployeeByUsername(
+        jwtUser.userName,
+      );
+      final employeeId = _employee?.id ?? 0;
+      final results = await Future.wait([
+        __leaveRequestService.countLeavesByEmployeeIdAndStatus(
+          employeeId,
+          null,
+        ),
+        __leaveRequestService.countLeavesByEmployeeIdAndStatus(
+          employeeId,
+          LeaveStatus.APPROVED,
+        ),
+        __leaveRequestService.countLeavesByEmployeeIdAndStatus(
+          employeeId,
+          LeaveStatus.PENDING,
+        ),
+        __leaveRequestService.countLeavesByEmployeeIdAndStatus(
+          employeeId,
+          LeaveStatus.REJECTED,
+        ),
+        __leaveRequestService.countLeavesByEmployeeIdAndStatus(
+          employeeId,
+          LeaveStatus.CANCELLED,
+        ),
+      ]);
+
       setState(() {
         _currentUser = user;
+
+        totalLeaves = results[0];
+        approvedLeaves = results[1];
+        pendingLeaves = results[2];
+        rejectedLeaves = results[3];
+        cancelledLeaves = results[4];
       });
     } catch (e) {
       print("Error loading current user: $e");
@@ -50,7 +99,10 @@ class _EmployeeDashboardPageState extends State<EmployeeDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Employee Dashboard", style: TextStyle(color: Color.fromARGB(255, 144, 4, 224)),),
+        title: const Text(
+          "Employee Dashboard",
+          style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold),
+        ),
         titleSpacing: 20,
         // centerTitle: true,
         backgroundColor: const Color.fromARGB(255, 135, 192, 238),
@@ -63,151 +115,210 @@ class _EmployeeDashboardPageState extends State<EmployeeDashboardPage> {
           ),
         ],
       ),
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  "Welcome,",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.deepPurple,
+      body: RefreshIndicator(
+        onRefresh: _loadCurrentUser,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    "Welcome,",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 162, 128, 216),
+                    ),
                   ),
-                ),
-                SizedBox(width: 4),
-                Text(
-                  "${_currentUser?.userFirstName ?? ''} ${_currentUser?.userLastName ?? ''} 👋",
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w500,
-                    
+                  SizedBox(width: 4),
+                  Text(
+                    "${_currentUser?.userFirstName ?? ''} ${_currentUser?.userLastName ?? ''} 👋",
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // ======================
+              // QUICK ACTIONS
+              // ======================
+              const Text(
+                "Quick Actions",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color.fromARGB(255, 60, 1, 224),
                 ),
-              ],
-            ),
+              ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
-            // ======================
-            // QUICK ACTIONS
-            // ======================
-            const Text(
-              "Quick Actions",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                children: [
+                  _buildActionCard(
+                    icon: Icons.event_available,
+                    title: "Apply Leave",
+                    color: Colors.blue,
+                    onTap: () {
+                      // Navigator.push to LeaveRequestForm
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LeaveRequestForm(),
+                        ),
+                      ).then((_) {
+                        _loadCurrentUser();
+                      });
+                    },
+                  ),
 
-            const SizedBox(height: 10),
+                  _buildActionCard(
+                    icon: Icons.list_alt,
+                    title: "My Leaves",
+                    color: Colors.orange,
+                    onTap: () {
+                      // Navigator.push to LeaveRequestList
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LeaveRequestList(),
+                        ),
+                      );
+                    },
+                  ),
 
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              children: [
-                _buildActionCard(
-                  icon: Icons.event_available,
-                  title: "Apply Leave",
-                  color: Colors.blue,
-                  onTap: () {
-                    // Navigator.push to LeaveRequestForm
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LeaveRequestForm(),
+                  _buildActionCard(
+                    icon: Icons.access_time,
+                    title: "Attendance",
+                    color: Colors.green,
+                    onTap: () {},
+                  ),
+
+                  _buildActionCard(
+                    icon: Icons.person,
+                    title: "Profile",
+                    color: Colors.purple,
+                    onTap: () {},
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+              // ======================
+              // STATS SECTION
+              // ======================
+              const Text(
+                "My Overview",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color.fromARGB(255, 60, 1, 224),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          "Total Leaves",
+                          totalLeaves.toString(),
+                          Colors.blue,
+                        ),
                       ),
-                    );
-                  },
-                ),
-
-                _buildActionCard(
-                  icon: Icons.list_alt,
-                  title: "My Leaves",
-                  color: Colors.orange,
-                  onTap: () {
-                    // Navigator.push to LeaveRequestList
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LeaveRequestList(),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildStatCard(
+                          "Approved",
+                          approvedLeaves.toString(),
+                          Colors.green,
+                        ),
                       ),
-                    );
-                  },
+                    ],
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          "Pending",
+                          pendingLeaves.toString(),
+                          Colors.orange,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildStatCard(
+                          "Rejected",
+                          rejectedLeaves.toString(),
+                          Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          "Cancelled",
+                          cancelledLeaves.toString(),
+                          Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+              // ======================
+              // RECENT ACTIVITY
+              // ======================
+              const Text(
+                "Recent Activity",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color.fromARGB(255, 60, 1, 224),
                 ),
+              ),
 
-                _buildActionCard(
-                  icon: Icons.access_time,
-                  title: "Attendance",
-                  color: Colors.green,
-                  onTap: () {},
-                ),
+              const SizedBox(height: 10),
 
-                _buildActionCard(
-                  icon: Icons.person,
-                  title: "Profile",
-                  color: Colors.purple,
-                  onTap: () {},
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 25),
-
-            // ======================
-            // STATS SECTION
-            // ======================
-            const Text(
-              "My Overview",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-
-            const SizedBox(height: 10),
-
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard("Total Leaves", "12", Colors.blue),
-                ),
-                const SizedBox(width: 10),
-                Expanded(child: _buildStatCard("Approved", "8", Colors.green)),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            Row(
-              children: [
-                Expanded(child: _buildStatCard("Pending", "3", Colors.orange)),
-                const SizedBox(width: 10),
-                Expanded(child: _buildStatCard("Rejected", "1", Colors.red)),
-              ],
-            ),
-
-            const SizedBox(height: 25),
-
-            // ======================
-            // RECENT ACTIVITY
-            // ======================
-            const Text(
-              "Recent Activity",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-
-            const SizedBox(height: 10),
-
-            _buildActivityTile(
-              "Leave Request Submitted",
-              "Pending",
-              Colors.orange,
-            ),
-            _buildActivityTile("Leave Approved", "Approved", Colors.green),
-            _buildActivityTile("Attendance Marked", "Today", Colors.blue),
-          ],
+              _buildActivityTile(
+                "Leave Request Submitted",
+                pendingLeaves.toString(),
+                Colors.orange,
+              ),
+              _buildActivityTile(
+                "Leave Approved",
+                approvedLeaves.toString(),
+                Colors.green,
+              ),
+              _buildActivityTile("Attendance Marked", "Today", Colors.blue),
+            ],
+          ),
         ),
       ),
     );

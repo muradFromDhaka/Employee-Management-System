@@ -49,7 +49,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
     _phoneController = TextEditingController(text: emp?.phone ?? "");
     _addressController = TextEditingController(text: emp?.address ?? "");
     _salaryController = TextEditingController(
-      text: emp?.basicSalary?.toString() ?? "",
+      text: emp?.basicSalary.toString() ?? "",
     );
 
     selectedDepartmentId = emp?.departmentId;
@@ -166,7 +166,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
 
               // USER DROPDOWN
               DropdownButtonFormField<String>(
-                value: selectedUserName,
+                initialValue: selectedUserName,
                 items: users.map<DropdownMenuItem<String>>((user) {
                   return DropdownMenuItem<String>(
                     value: user['userName'], // MUST MATCH BACKEND KEY
@@ -187,7 +187,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
 
               // DEPARTMENT
               DropdownButtonFormField<int>(
-                value: selectedDepartmentId,
+                initialValue: selectedDepartmentId,
                 items: departments.map<DropdownMenuItem<int>>((dept) {
                   return DropdownMenuItem<int>(
                     value: dept.id,
@@ -209,7 +209,7 @@ class _EmployeeFormState extends State<EmployeeForm> {
 
               // ROLE
               DropdownButtonFormField<String>(
-                value: selectedRole,
+                initialValue: selectedRole,
                 items: roles.map<DropdownMenuItem<String>>((r) {
                   return DropdownMenuItem<String>(
                     value: r.roleName,
