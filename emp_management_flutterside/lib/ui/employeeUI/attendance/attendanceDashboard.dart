@@ -287,10 +287,10 @@ class _AttendanceDashboardState extends State<AttendanceDashboard> {
                 onPressed: (isCheckedIn && !isCheckedOut && !isLoading)
                     ? _checkOut
                     : null,
-                child: const Text("Check Out"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 236, 114, 240),
                 ),
+                child: const Text("Check Out"),
               ),
             ),
           ],

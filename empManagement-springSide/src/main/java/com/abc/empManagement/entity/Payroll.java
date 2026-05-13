@@ -4,8 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.YearMonth;
 
 @Getter
 @Setter
@@ -21,7 +20,7 @@ public class Payroll {
     private Double deduction;
     private Double finalSalary;
 
-    private LocalDateTime month;
+    private YearMonth month;
 
     @ManyToOne
     @JoinColumn(name = "employee_id")

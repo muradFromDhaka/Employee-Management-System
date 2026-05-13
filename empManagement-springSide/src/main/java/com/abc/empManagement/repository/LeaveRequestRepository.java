@@ -58,4 +58,11 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
 
     // 10. TOTAL leaves
     long countByEmployeeId(Long employeeId);
+
+    long countByEmployeeIdAndStatusAndStartDateBetween(
+            Long employeeId,
+            LeaveStatus status,
+            LocalDate start,
+            LocalDate end
+    );
 }

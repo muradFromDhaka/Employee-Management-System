@@ -1,4 +1,4 @@
-import 'package:emp_management_flutterside/ui/adminUI/admin_dashboard.dart';
+import 'package:emp_management_flutterside/ui/adminUI/admin_dashboardpage.dart';
 import 'package:flutter/material.dart';
 
 class PublicPage extends StatefulWidget {

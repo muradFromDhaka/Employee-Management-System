@@ -10,10 +10,12 @@ import com.abc.empManagement.repository.LeaveRequestRepository;
 import com.abc.empManagement.repository.PayrollRepository;
 import com.abc.empManagement.enums.LeaveStatus;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 
 @Service
@@ -26,38 +28,54 @@ public class PayrollService {
     private final LeaveRequestRepository leaveRequestRepository;
     private final PayrollMapper payrollMapper;
 
-    public Payroll generatePayroll(Long employeeId, LocalDateTime month) {
+    @Transactional
+    public Payroll generatePayroll(Long employeeId, YearMonth month) {
 
         Employee emp = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found"));
 
-        LocalDateTime normalizedMonth = month.withDayOfMonth(1);
-
-        // prevent duplicate
-        if (payrollRepository.findByEmployeeIdAndMonth(employeeId, normalizedMonth).isPresent()) {
-            throw new RuntimeException("Payroll already generated for this month");
+        // prevent duplicate payroll
+        if (payrollRepository.findByEmployeeIdAndMonth(employeeId, month).isPresent()) {
+            throw new IllegalStateException("Payroll already generated for this month");
         }
 
-        double basicSalary = emp.getBasicSalary(); // BEST PRACTICE
+        double basicSalary = emp.getBasicSalary();
 
-        double bonus = calculateBonus(employeeId, normalizedMonth);
-        double deduction = calculateDeduction(employeeId, normalizedMonth);
+        // calculate values for selected month
+        double bonus = calculateBonus(employeeId, month);
+        double deduction = calculateDeduction(employeeId, month);
 
         Payroll payroll = new Payroll();
+
         payroll.setEmployee(emp);
-        payroll.setMonth(normalizedMonth);
+
+        // store YearMonth directly
+        payroll.setMonth(month);
+
         payroll.setBasicSalary(basicSalary);
         payroll.setBonus(bonus);
         payroll.setDeduction(deduction);
-        payroll.setFinalSalary(basicSalary + bonus - deduction);
+
+        payroll.setFinalSalary(
+                basicSalary + bonus - deduction
+        );
 
         return payrollRepository.save(payroll);
     }
 
 
-    private double calculateBonus(Long employeeId, LocalDateTime month) {
 
-        long presentDays = attendanceRepository.countByEmployeeId(employeeId);
+    private double calculateBonus(Long employeeId, YearMonth month) {
+
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
+
+        long presentDays = attendanceRepository
+                .countByEmployeeIdAndDateBetween(
+                        employeeId,
+                        start,
+                        end
+                );
 
         if (presentDays >= 26) return 5000;
         if (presentDays >= 20) return 3000;
@@ -66,14 +84,21 @@ public class PayrollService {
     }
 
 
-    private double calculateDeduction(Long employeeId, LocalDateTime month) {
+    private double calculateDeduction(Long employeeId, YearMonth month) {
+
+        LocalDate start = month.atDay(1);
+        LocalDate end = month.atEndOfMonth();
 
         long leaves = leaveRequestRepository
-                .countByEmployeeIdAndStatus(employeeId, LeaveStatus.APPROVED);
+                .countByEmployeeIdAndStatusAndStartDateBetween(
+                        employeeId,
+                        LeaveStatus.APPROVED,
+                        start,
+                        end
+                );
 
         return leaves * 500;
     }
-
 
     public PayrollResponseDTO getById(Long id) {
 
@@ -91,17 +116,22 @@ public class PayrollService {
                 .toList();
     }
 
-    public List<PayrollResponseDTO> getMonthlyPayroll(LocalDateTime month) {
+    public List<PayrollResponseDTO> getMonthlyPayroll(YearMonth month) {
 
-        return payrollRepository.findByMonth(month.withDayOfMonth(1))
+        return payrollRepository.findByMonth(month)
                 .stream()
                 .map(payrollMapper::toDto)
                 .toList();
     }
 
-    public Double getTotalSalaryExpense(LocalDateTime month) {
-        return payrollRepository.getTotalSalaryByMonth(month.withDayOfMonth(1));
+    public Double getTotalSalaryExpense(YearMonth month) {
+
+        Double total = payrollRepository.getTotalSalaryByMonth(month);
+
+        return total != null ? total : 0.0;
     }
+
+
 
     public void deletePayroll(Long id) {
 

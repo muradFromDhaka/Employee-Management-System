@@ -1,62 +1,46 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
-
-// =========================
-  // COMMON RESPONSE HANDLER
-  // =========================
 dynamic handleResponse(http.Response response) {
-  final statusCode = response.statusCode;
-
   try {
-    final responseData = response.body.isNotEmpty
-        ? jsonDecode(response.body)
-        : null;
+    final body = response.body;
 
-    switch (statusCode) {
+    dynamic data;
 
-      // SUCCESS
+    // SAFE JSON parsing
+    if (body.isNotEmpty) {
+      try {
+        data = jsonDecode(body);
+      } catch (_) {
+        data = body; // fallback for plain text responses
+      }
+    }
+
+    switch (response.statusCode) {
       case 200:
       case 201:
-        return responseData;
+        return data;
 
       case 204:
         return true;
 
-      // CLIENT ERROR
       case 400:
-        throw Exception(
-          responseData?['message'] ?? 'Bad Request',
-        );
-
       case 401:
-        throw Exception(
-          responseData?['message'] ?? 'Unauthorized Access',
-        );
-
       case 403:
-        throw Exception(
-          responseData?['message'] ?? 'Access Forbidden',
-        );
-
       case 404:
-        throw Exception(
-          responseData?['message'] ?? 'Resource Not Found',
-        );
-
-      // SERVER ERROR
       case 500:
-        throw Exception(
-          responseData?['message'] ?? 'Internal Server Error',
-        );
+        final message = (data is Map && data['message'] != null)
+            ? data['message']
+            : "Server Error (${response.statusCode})";
+
+        throw Exception(message);
 
       default:
         throw Exception(
-          'Something went wrong! Status Code: $statusCode',
+          "Unexpected Error: ${response.statusCode}",
         );
     }
   } catch (e) {
-    throw Exception('Response Processing Error: $e');
+    throw Exception("Response Processing Failed: $e");
   }
 }

@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 
 @Getter
 @Setter
@@ -16,7 +17,7 @@ public class PayrollResponseDTO {
     private Double deduction;
     private Double finalSalary;
 
-    private LocalDateTime month;
+    private YearMonth month;
 
     private Long employeeId;
     private String employeeName;

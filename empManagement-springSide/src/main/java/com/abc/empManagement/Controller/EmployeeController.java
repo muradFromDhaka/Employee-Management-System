@@ -41,8 +41,12 @@ public class EmployeeController {
     }
 
     @PostMapping
-    public ResponseEntity<String> create(@RequestBody EmployeeRequestDTO dto) {
-        return ResponseEntity.ok(employeeService.create(dto));
+    public ResponseEntity<?> create(@RequestBody EmployeeRequestDTO dto) {
+        try {
+            return ResponseEntity.ok(employeeService.create(dto));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PutMapping("/{id}")
@@ -50,7 +54,12 @@ public class EmployeeController {
             @PathVariable Long id,
             @RequestBody EmployeeRequestDTO dto) {
 
-        return ResponseEntity.ok(employeeService.update(id, dto));
+        try {
+            return ResponseEntity.ok(employeeService.update(id, dto));
+        }catch (Exception e){
+            System.out.print("Exception: " + e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     // =========================

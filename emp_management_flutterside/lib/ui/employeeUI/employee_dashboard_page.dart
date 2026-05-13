@@ -50,15 +50,13 @@ class _EmployeeDashboardPageState extends State<EmployeeDashboardPage> {
   Future<void> _loadCurrentUser() async {
     // await Future.delayed(const Duration(milliseconds: 500));
     try {
-      print("🔥 LOAD STARTED");
       final jwtUser = await _authService.getCurrentUser2();
       final user = await _adminService.getUserByUsername(jwtUser!.userName);
       _employee = await _employeeService.getEmployeeByUsername(
         jwtUser.userName,
       );
-      print("STEP 1: API CALL START");
+ 
       final list = await _attendanceService.getMyAttendance();
-      print("STEP 2: LIST SIZE = ${list.length}");
       final today = DateTime.now().toIso8601String().substring(0, 10);
       final found = list.where((e) => e.date == today).toList();
 

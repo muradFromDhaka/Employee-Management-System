@@ -391,55 +391,59 @@ class _RoleManagementPageState extends State<RoleManagementPage> {
   /* ================= UI ================= */
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isMobile = constraints.maxWidth < 600;
+    return Scaffold(
+      appBar: AppBar(title: Text("Role Management"), titleSpacing: 5,),
+      backgroundColor: const Color.fromARGB(255, 216, 208, 183),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isMobile = constraints.maxWidth < 600;
 
-          if (isMobile) {
-            // Mobile: Vertical layout
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(flex: 2, child: _buildRolesPanel()),
-                SizedBox(height: 40),
-                Text(
-                  "Role wise User List",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: const Color.fromARGB(255, 3, 88, 6),
+            if (isMobile) {
+              // Mobile: Vertical layout
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 2, child: _buildRolesPanel()),
+                  SizedBox(height: 40),
+                  Text(
+                    "Role wise User List",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: const Color.fromARGB(255, 3, 88, 6),
+                    ),
                   ),
-                ),
-                Divider(
-                  height: 10,
-                  thickness: 2,
-                  color: const Color.fromARGB(255, 168, 231, 201),
-                  indent: 2,
-                  endIndent: 160,
-                ),
-                SizedBox(height: 5),
-                Expanded(flex: 3, child: _buildUsersPanel()),
-              ],
-            );
-          } else {
-            // Tablet/Desktop: Horizontal layout
-            return Row(
-              children: [
-                SizedBox(
-                  width: constraints.maxWidth * 0.35,
-                  child: _buildRolesPanel(),
-                ),
-                const VerticalDivider(width: 1),
-                SizedBox(
-                  width: constraints.maxWidth * 0.65,
-                  child: _buildUsersPanel(),
-                ),
-              ],
-            );
-          }
-        },
+                  Divider(
+                    height: 10,
+                    thickness: 2,
+                    color: const Color.fromARGB(255, 168, 231, 201),
+                    indent: 2,
+                    endIndent: 160,
+                  ),
+                  SizedBox(height: 5),
+                  Expanded(flex: 3, child: _buildUsersPanel()),
+                ],
+              );
+            } else {
+              // Tablet/Desktop: Horizontal layout
+              return Row(
+                children: [
+                  SizedBox(
+                    width: constraints.maxWidth * 0.35,
+                    child: _buildRolesPanel(),
+                  ),
+                  const VerticalDivider(width: 1),
+                  SizedBox(
+                    width: constraints.maxWidth * 0.65,
+                    child: _buildUsersPanel(),
+                  ),
+                ],
+              );
+            }
+          },
+        ),
       ),
     );
   }

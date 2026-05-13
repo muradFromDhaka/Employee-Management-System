@@ -1,5 +1,3 @@
-
-
 import 'package:emp_management_flutterside/models/auth/role.dart';
 import 'package:emp_management_flutterside/models/auth/user.dart';
 import 'package:emp_management_flutterside/models/department.dart';
@@ -71,6 +69,10 @@ class _EmployeeFormState extends State<EmployeeForm> {
         roles = roleData;
         users = userData;
       });
+
+      for (var user in users) {
+        print(user.userName);
+      }
     } catch (e) {
       debugPrint("Load error: $e");
     }
@@ -131,8 +133,8 @@ class _EmployeeFormState extends State<EmployeeForm> {
     return Scaffold(
       appBar: AppBar(title: Text(isEdit ? "Edit Employee" : "Create Employee")),
       body: RefreshIndicator(
-        onRefresh: ()async{
-           await _loadData();
+        onRefresh: () async {
+          await _loadData();
         },
         child: Form(
           key: _formKey,
@@ -167,7 +169,10 @@ class _EmployeeFormState extends State<EmployeeForm> {
 
               // USER DROPDOWN
               DropdownButtonFormField<String>(
-                initialValue: selectedUserName,
+                // initialValue: selectedUserName,
+                initialValue: users.any((u) => u.userName == selectedUserName)
+                    ? selectedUserName
+                    : null,
                 items: users.map<DropdownMenuItem<String>>((user) {
                   return DropdownMenuItem<String>(
                     value: user.userName, // MUST MATCH BACKEND KEY

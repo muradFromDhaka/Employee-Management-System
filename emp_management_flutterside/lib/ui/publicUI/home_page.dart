@@ -1,5 +1,5 @@
 import 'package:emp_management_flutterside/services/auth_service.dart';
-import 'package:emp_management_flutterside/ui/adminUI/admin_dashboard.dart';
+import 'package:emp_management_flutterside/ui/adminUI/admin_dashboardpage.dart';
 import 'package:emp_management_flutterside/ui/authUI/login_page.dart';
 import 'package:emp_management_flutterside/ui/managerUI/manager_dashboard.dart';
 import 'package:emp_management_flutterside/ui/publicUI/publicPage.dart';

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,12 +20,12 @@ public interface PayrollRepository extends JpaRepository<Payroll, Long> {
     // =========================
     // 2. Employee + Month (VERY IMPORTANT)
     // =========================
-    Optional<Payroll> findByEmployeeIdAndMonth(Long employeeId, LocalDateTime month);
+    Optional<Payroll> findByEmployeeIdAndMonth(Long employeeId, YearMonth month);
 
     // =========================
     // 3. All payrolls of a month (company report)
     // =========================
-    List<Payroll> findByMonth(LocalDateTime month);
+    List<Payroll> findByMonth(YearMonth month);
 
     // =========================
     // 4. High salary employees (reporting)
@@ -44,7 +45,7 @@ public interface PayrollRepository extends JpaRepository<Payroll, Long> {
         FROM Payroll p
         WHERE p.month = :month
     """)
-    Double getTotalSalaryByMonth(LocalDateTime month);
+    Double getTotalSalaryByMonth(YearMonth month);
 
     // =========================
     // 7. Employee salary count (how many payroll entries)
